@@ -1,8 +1,10 @@
 package com.github.ksouthwood.possystem;
 
 import org.assertj.swing.core.ComponentLookupScope;
+import org.assertj.swing.data.Index;
 import org.assertj.swing.edt.FailOnThreadViolationRepaintManager;
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.exception.ComponentLookupException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JPanelFixture;
 import org.junit.jupiter.api.*;
@@ -48,8 +50,17 @@ public class RootWindowTest {
     @Order(1)
     public void testWindowInitialState() {
         // check JFrame
-        window.requireVisible();
-        window.requireTitle(WindowLabels.WINDOW_TITLE);
+        assertEquals(WindowLabels.WINDOW_NAME, window.target().getName(),
+                     "The window title should be " + WindowLabels.WINDOW_TITLE);
+        try {
+            window.tabbedPane(WindowLabels.TABBED_PANE_NAME)
+                  .requireVisible()
+                  .requireSelectedTab(Index.atIndex(0));
+        } catch (ComponentLookupException e) {
+            fail("The window should have a tabbed pane named " + WindowLabels.TABBED_PANE_NAME);
+        } catch (AssertionError error) {
+            fail("The tabbed pane should be visible and set to " + WindowLabels.SUPPLIER_PANE_TITLE);
+        }
 
         // get panels
         JPanelFixture top    = window.panel(WindowLabels.TOP_PANEL_NAME);
@@ -57,32 +68,52 @@ public class RootWindowTest {
         JPanelFixture bottom = window.panel(WindowLabels.BOTTOM_PANEL_NAME);
 
         // check panels visibility
-        top.requireVisible();
-        middle.requireNotVisible();
-        bottom.requireVisible();
+        try {
+            top.requireVisible();
+            middle.requireNotVisible();
+            bottom.requireVisible();
+        } catch (AssertionError e) {
+            fail("Make sure the initial panel visibilities are correct");
+        }
 
         // check the top panel
-        top.label(WindowLabels.INSTRUCTION_LABEL_NAME)
-           .requireText(WindowLabels.INSTRUCTION_LABEL_TEXT)
-           .requireVisible();
-        top.radioButton(WindowLabels.MERLOT_BUTTON)
-           .requireText(WindowLabels.MERLOT_BUTTON_TEXT)
-           .requireEnabled();
-        top.radioButton(WindowLabels.ROSE_BUTTON)
-           .requireText(WindowLabels.ROSE_BUTTON_TEXT)
-           .requireEnabled();
-        top.radioButton(WindowLabels.SAUVIGNON_BUTTON)
-           .requireText(WindowLabels.SAUVIGNON_BUTTON_TEXT)
-           .requireEnabled();
+        try {
+            top.label(WindowLabels.INSTRUCTION_LABEL_NAME)
+               .requireText(WindowLabels.INSTRUCTION_LABEL_TEXT)
+               .requireVisible();
+            top.radioButton(WindowLabels.MERLOT_BUTTON)
+               .requireText(WindowLabels.MERLOT_BUTTON_TEXT)
+               .requireEnabled();
+            top.radioButton(WindowLabels.ROSE_BUTTON)
+               .requireText(WindowLabels.ROSE_BUTTON_TEXT)
+               .requireEnabled();
+            top.radioButton(WindowLabels.SAUVIGNON_BUTTON)
+               .requireText(WindowLabels.SAUVIGNON_BUTTON_TEXT)
+               .requireEnabled();
+        } catch (ComponentLookupException e) {
+            fail(String.format("The top panel should contain %s, %s, %s, & %s.",
+                               WindowLabels.INSTRUCTION_LABEL_NAME, WindowLabels.MERLOT_BUTTON,
+                               WindowLabels.ROSE_BUTTON, WindowLabels.SAUVIGNON_BUTTON));
+        } catch (AssertionError e) {
+            fail(String.format("%s, %s, %s, & %s should have their respective texts.",
+                               WindowLabels.INSTRUCTION_LABEL_NAME, WindowLabels.MERLOT_BUTTON,
+                               WindowLabels.ROSE_BUTTON, WindowLabels.SAUVIGNON_BUTTON));
+        }
 
         // check the bottom panel
-        bottom.label(WindowLabels.SUCCESS_LABEL_NAME)
-              .requireNotVisible();
-        bottom.button(WindowLabels.SUBMIT_BUTTON_NAME)
-              .requireDisabled();
-        bottom.label(WindowLabels.MESSAGE_LABEL_NAME)
-              .requireVisible()
-              .requireText("");
+        try {
+            bottom.label(WindowLabels.SUCCESS_LABEL_NAME)
+                  .requireNotVisible();
+            bottom.button(WindowLabels.SUBMIT_BUTTON_NAME)
+                  .requireDisabled();
+            bottom.label(WindowLabels.MESSAGE_LABEL_NAME)
+                  .requireVisible()
+                  .requireText("");
+        } catch (ComponentLookupException e) {
+            fail("Bottom panel does not contain all required components.");
+        } catch (AssertionError error) {
+            fail("Bottom panel components are not in their correct initial state.");
+        }
     }
 
     @Test
@@ -194,5 +225,48 @@ public class RootWindowTest {
         assertEquals("Ernest", supplierComboBox.contents()[0],
                      "Supplier names should be added to SupplierComboBox " +
                      "after a successful submission.");
+    }
+
+    @Test
+    @Order(5)
+    void testMultipleOrders() {
+        var amountComboBox = window.comboBox(WindowLabels.AMOUNT_COMBO_BOX);
+        var supplierComboBox = window.comboBox(WindowLabels.SUPPLIER_COMBO_BOX);
+        var purchaseTextField = window.textBox(WindowLabels.PURCHASED_PRICE_TEXT_FIELD);
+        var submitButton = window.button(WindowLabels.SUBMIT_BUTTON_NAME);
+
+        window.radioButton(WindowLabels.ROSE_BUTTON).click();
+        amountComboBox.selectItem(1);
+        supplierComboBox.enterText("Julio");
+        purchaseTextField.enterText("14.50");
+        submitButton.click();
+
+        window.radioButton(WindowLabels.SAUVIGNON_BUTTON).click();
+        amountComboBox.selectItem(3);
+        supplierComboBox.enterText("Ernest");
+        purchaseTextField.enterText("25.78");
+        submitButton.click();
+
+        try {
+            supplierComboBox.requireItemCount(2);
+            assertEquals("Ernest", supplierComboBox.contents()[0]);
+            assertEquals("Julio", supplierComboBox.contents()[1]);
+        } catch (AssertionError ignored) {
+            fail("Supplier names should be added to SupplierComboBox after a successful submission.");
+        }
+    }
+
+    @Test
+    @Order(6)
+    void testTableContents() {
+        try {
+            window.tabbedPane()
+                  .selectTab(1);
+        } catch (IndexOutOfBoundsException ignored) {
+            fail("Tabbed pane should have two tabs.");
+        }
+
+        var ordersTable = window.table(WindowLabels.ORDERS_TABLE_NAME);
+        ordersTable.requireRowCount(3);
     }
 }

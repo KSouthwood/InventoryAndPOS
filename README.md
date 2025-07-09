@@ -7,10 +7,6 @@ yet complex—you need to make a program that allows users to add and keep track
 a database that stores the orders and shows from where the wine was acquired. Users should be also able to edit orders
 so that they know that the supplier has been paid or the wine has been sold to wine lovers.
 
-## Learning Outcomes
-
-Text
-
 ### Stage 1: [The inventory manager](https://hyperskill.org/projects/211/stages/1057/implement)
 
 #### _Summary_
@@ -33,6 +29,13 @@ supplier. Show a message in the window with the total number of bottles ordered 
 #### _Summary_
 
 Keep track of the received orders from multiple suppliers. Improve the GUI with a table that keeps all incoming orders.
+
+##### _Description_
+
+So far, we are leaving the incoming orders as they are, and the Merchant has lost track of the inventory. Now, we 
+need to help the Merchant keep track of all their incoming orders in an extended table. Build a second GUI screen 
+that contains a JTable with a detailed description of the orders. This view should also contain a filter button for 
+each supplier.
 
 ### Stage 3: [Database](https://hyperskill.org/projects/211/stages/1059/implement)
 

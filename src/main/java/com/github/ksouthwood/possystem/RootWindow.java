@@ -1,40 +1,58 @@
 package com.github.ksouthwood.possystem;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.Enumeration;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
 public class RootWindow extends JFrame {
     private final Controller controller;
 
-    private JPanel             orderPanel;
-    private ButtonGroup        wineSelector;
+    private JPanel      orderInputPanel;
+    private ButtonGroup wineSelector;
     private JComboBox<Integer> amountComboBox;
     private JComboBox<String>  supplierComboBox;
     private JTextField         priceTextField;
     private JButton            submitButton;
     private JLabel             messageLabel;
     private JLabel             successLabel;
+    private DefaultTableModel  ordersTableModel;
+    private JComboBox<String>  supplierNames;
+    private JTable ordersTable;
+    private TableRowSorter<DefaultTableModel> ordersTableSorter;
 
     public RootWindow() {
         super(WindowLabels.WINDOW_TITLE);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(300, 300);
+        this.setSize(500, 500);
         this.setLocationRelativeTo(null);
-        this.setLayout(null);
+        this.setLayout(new FlowLayout());
         this.setName(WindowLabels.WINDOW_NAME);
         this.controller = new Controller(this);
         buildWindow();
         this.setVisible(true);
     }
 
-    public void buildWindow() {
-        this.add(buildTopPanel());
-        this.add(buildOrderPanel());
-        this.add(buildBottomPanel());
+    private void buildWindow() {
+        var tabbedPane = new JTabbedPane();
+        tabbedPane.setName(WindowLabels.TABBED_PANE_NAME);
+
+        tabbedPane.addTab(WindowLabels.SUPPLIER_PANE_TITLE, buildSupplierOrderPanel());
+        tabbedPane.addTab(WindowLabels.ORDERS_PANE_TITLE, buildOrdersPanel());
+
+        this.add(tabbedPane);
+    }
+
+    private JPanel buildSupplierOrderPanel() {
+        var supplierOrderPane = new JPanel();
+        supplierOrderPane.setName(WindowLabels.SUPPLIER_PANE_NAME);
+        supplierOrderPane.setLayout(new GridLayout(3, 1));
+        supplierOrderPane.add(buildTopPanel());
+        supplierOrderPane.add(buildOrderInputPanel());
+        supplierOrderPane.add(buildBottomPanel());
+        return supplierOrderPane;
     }
 
     private JPanel buildTopPanel() {
@@ -73,20 +91,20 @@ public class RootWindow extends JFrame {
         wineSelector.add(sauvignonButton);
 
         // add components to the topPanel
-        topPanel.add(instructionLabel, BorderLayout.PAGE_START);
-        topPanel.add(merlotButton, BorderLayout.LINE_START);
+        topPanel.add(instructionLabel, BorderLayout.NORTH);
+        topPanel.add(merlotButton, BorderLayout.WEST);
         topPanel.add(roseButton, BorderLayout.CENTER);
-        topPanel.add(sauvignonButton, BorderLayout.LINE_END);
+        topPanel.add(sauvignonButton, BorderLayout.EAST);
 
         return topPanel;
     }
 
-    private JPanel buildOrderPanel() {
-        orderPanel = new JPanel();
-        orderPanel.setName(WindowLabels.MIDDLE_PANEL_NAME);
-        orderPanel.setLayout(new FlowLayout());
-        orderPanel.setBounds(0, 50, 300, 150);
-        orderPanel.setVisible(false);
+    private JPanel buildOrderInputPanel() {
+        orderInputPanel = new JPanel();
+        orderInputPanel.setName(WindowLabels.MIDDLE_PANEL_NAME);
+        orderInputPanel.setLayout(new FlowLayout());
+        orderInputPanel.setBounds(0, 50, 300, 150);
+        orderInputPanel.setVisible(false);
 
         // define amountComboBox
         amountComboBox = new JComboBox<>(
@@ -107,16 +125,16 @@ public class RootWindow extends JFrame {
         priceTextField.setColumns(10);
 
         // add components to the middlePanel
-        orderPanel.add(amountComboBox);
-        orderPanel.add(supplierComboBox);
-        orderPanel.add(priceTextField);
-        return orderPanel;
+        orderInputPanel.add(amountComboBox);
+        orderInputPanel.add(supplierComboBox);
+        orderInputPanel.add(priceTextField);
+        return orderInputPanel;
     }
 
     private JPanel buildBottomPanel() {
         var bottomPanel = new JPanel();
         bottomPanel.setName(WindowLabels.BOTTOM_PANEL_NAME);
-        bottomPanel.setLayout(new FlowLayout());
+        bottomPanel.setLayout(new GridLayout(3, 1));
         bottomPanel.setBounds(0, 205, 300, 50);
 
         // define successLabel
@@ -144,30 +162,53 @@ public class RootWindow extends JFrame {
         return bottomPanel;
     }
 
-    JPanel getOrderPanel() { return orderPanel; }
+    private JPanel buildOrdersPanel() {
+        var ordersPane = new JPanel();
+        ordersPane.setName(WindowLabels.ORDERS_PANE_NAME);
+        ordersPane.setLayout(new BorderLayout());
 
-    JButton getSubmitButton() { return submitButton; }
+        supplierNames = new JComboBox<>();
+        supplierNames.setName(WindowLabels.ORDERS_COMBO_BOX);
+        supplierNames.setEditable(false);
+        supplierNames.addItem(WindowLabels.ORDERS_COMBO_ALL);
 
-    JLabel getSuccessLabel() { return successLabel; }
+        var filterButton = new JButton();
+        filterButton.setName(WindowLabels.FILTER_BUTTON_NAME);
+        filterButton.setText(WindowLabels.FILTER_BUTTON_TEXT);
+        filterButton.addActionListener(controller);
 
-    JLabel getMessageLabel() { return messageLabel; }
+        ordersTableModel = new DefaultTableModel(WindowLabels.ORDERS_TABLE_COLUMNS, 0);
+        ordersTable = new JTable(ordersTableModel);
+        ordersTable.setName(WindowLabels.ORDERS_TABLE_NAME);
+        ordersTableSorter = new TableRowSorter<>(ordersTableModel);
 
-    void setMessageLabelText(String text) {
-        messageLabel.setText(text);
+        ordersPane.add(supplierNames, BorderLayout.WEST);
+        ordersPane.add(filterButton, BorderLayout.EAST);
+        ordersPane.add(ordersTable, BorderLayout.SOUTH);
+        return ordersPane;
     }
 
-    void updateSupplierComboBox(String supplier) {
-        supplierComboBox.addItem(supplier);
-    }
+    JPanel orderInputPanel() { return orderInputPanel; }
 
-    void orderSuccessful() {
-        successLabel.setVisible(true);
-        submitButton.setEnabled(false);
-        orderPanel.setVisible(false);
-        amountComboBox.setSelectedIndex(-1);
-        supplierComboBox.setSelectedIndex(-1);
-        priceTextField.setText("");
-    }
+    JComboBox<String> supplierComboBox() { return supplierComboBox; }
+
+    JTextField priceTextField() { return priceTextField; }
+
+    JComboBox<Integer> amountComboBox() { return amountComboBox; }
+
+    JButton submitButton() { return submitButton; }
+
+    JLabel successLabel() { return successLabel; }
+
+    JLabel messageLabel() { return messageLabel; }
+
+    JComboBox<String> supplierNamesComboBox() { return supplierNames; }
+
+    JTable ordersTable() { return ordersTable; }
+
+    TableRowSorter<DefaultTableModel> ordersTableSorter() { return ordersTableSorter; }
+
+    DefaultTableModel ordersTableModel() { return ordersTableModel; }
 
     String getSelectedWine() {
         Enumeration<AbstractButton> radioButtons = wineSelector.getElements();
@@ -178,34 +219,5 @@ public class RootWindow extends JFrame {
             }
         }
         return null;
-    }
-
-    void resetOrderPanel() {
-        supplierComboBox.setSelectedIndex(-1);
-        priceTextField.setText("");
-    }
-
-    Map<String, String> getSupplier() {
-        return Map.of("supplier", (String) supplierComboBox.getSelectedItem(),
-                      "index", String.valueOf(supplierComboBox.getSelectedIndex()));
-    }
-
-    Optional<Integer> getAmount() {
-        int index = amountComboBox.getSelectedIndex();
-        if (index == -1) {
-            setMessageLabelText("Error: Please choose an amount");
-            return Optional.empty();
-        }
-        return Optional.of(amountComboBox.getItemAt(index));
-    }
-
-    Optional<Double> getPrice() {
-        try {
-            return Optional.of(Double.parseDouble(priceTextField.getText()));
-        } catch (NumberFormatException e) {
-            setMessageLabelText("Error: price must be a number");
-            resetOrderPanel();
-            return Optional.empty();
-        }
     }
 }
