@@ -7,9 +7,11 @@ import java.util.Optional;
 
 public class Controller extends AbstractAction {
     final private RootWindow rootWindow;
+    final private DBHandler dbHandler;
 
-    public Controller(RootWindow rootWindow) {
+    public Controller(final RootWindow rootWindow, final String databaseName) {
         this.rootWindow = rootWindow;
+        this.dbHandler = new DBHandler(databaseName);
     }
 
     @Override
@@ -63,11 +65,14 @@ public class Controller extends AbstractAction {
 
     private void inputOrderValid(final String supplier, final String wine, final int cases, final double price) {
         int bottles = cases * 12;
+        boolean isPaid = false; // new order so it isn't paid yet
+
         rootWindow.messageLabel().setText(String.format("Added %d cases of %s from %s (%d bottles).",
                                                      cases, wine, supplier, bottles));
         rootWindow.ordersTableModel().addRow(
-                new Object[] {supplier, wine, bottles, price, false}
+                new Object[] {supplier, wine, bottles, price, isPaid}
         );
+        dbHandler.addSupplierOrder(supplier, wine, bottles, price, isPaid);
         rootWindow.successLabel().setVisible(true);
         rootWindow.submitButton().setEnabled(false);
         rootWindow.orderInputPanel().setVisible(false);
@@ -143,9 +148,6 @@ public class Controller extends AbstractAction {
             rootWindow.ordersTableSorter()
                       .setRowFilter(getRowFilter(supplier));
         }
-
-        rootWindow.ordersTable()
-                  .setRowSorter(rootWindow.ordersTableSorter());
     }
 
     private RowFilter<DefaultTableModel, Object> getRowFilter(final String supplier) {

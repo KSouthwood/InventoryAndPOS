@@ -43,6 +43,11 @@ each supplier.
 
 Implement SQL functionality so that the program can save the status of the order even after closing the application.
 
+##### _Description_
+
+Now that we have the interface we want, let's keep the orders between invocations of the program by saving them to a 
+SQL database. The filename of the database will be passed to the RootWindow class.
+
 ### Stage 4: [Inventory](https://hyperskill.org/projects/211/stages/1060/implement)
 
 #### _Summary_

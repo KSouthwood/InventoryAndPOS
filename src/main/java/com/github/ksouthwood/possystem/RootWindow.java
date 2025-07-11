@@ -10,28 +10,34 @@ import java.util.stream.IntStream;
 public class RootWindow extends JFrame {
     private final Controller controller;
 
-    private JPanel      orderInputPanel;
-    private ButtonGroup wineSelector;
-    private JComboBox<Integer> amountComboBox;
-    private JComboBox<String>  supplierComboBox;
-    private JTextField         priceTextField;
-    private JButton            submitButton;
-    private JLabel             messageLabel;
-    private JLabel             successLabel;
-    private DefaultTableModel  ordersTableModel;
-    private JComboBox<String>  supplierNames;
-    private JTable ordersTable;
+    private JPanel                            orderInputPanel;
+    private ButtonGroup                       wineSelector;
+    private JComboBox<Integer>                amountComboBox;
+    private JComboBox<String>                 supplierComboBox;
+    private JTextField                        priceTextField;
+    private JButton                           submitButton;
+    private JLabel                            messageLabel;
+    private JLabel                            successLabel;
+    private DefaultTableModel                 ordersTableModel;
+    private JComboBox<String>                 supplierNames;
+    private JTable                            ordersTable;
     private TableRowSorter<DefaultTableModel> ordersTableSorter;
 
     public RootWindow() {
+        this("orders.db");
+    }
+
+    public RootWindow(final String databaseName) {
         super(WindowLabels.WINDOW_TITLE);
+        this.setName(WindowLabels.WINDOW_NAME);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(500, 500);
+        this.setPreferredSize(new Dimension(500, 500));
+        this.setMinimumSize(new Dimension(300, 300));
         this.setLocationRelativeTo(null);
         this.setLayout(new FlowLayout());
-        this.setName(WindowLabels.WINDOW_NAME);
-        this.controller = new Controller(this);
+        this.controller = new Controller(this, databaseName);
         buildWindow();
+        this.pack();
         this.setVisible(true);
     }
 
@@ -58,43 +64,53 @@ public class RootWindow extends JFrame {
     private JPanel buildTopPanel() {
         var topPanel = new JPanel();
         topPanel.setName(WindowLabels.TOP_PANEL_NAME);
-        topPanel.setLayout(new BorderLayout());
-        topPanel.setBounds(0, 0, 300, 50);
+        topPanel.setLayout(new GridBagLayout());
 
         // define instructionLabel
         var instructionLabel = new JLabel();
+        var instructionConstraints = new GridBagConstraints();
         instructionLabel.setName(WindowLabels.INSTRUCTION_LABEL_NAME);
         instructionLabel.setText(WindowLabels.INSTRUCTION_LABEL_TEXT);
         instructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        instructionLabel.setBounds(10, 10, 280, 20);
+        instructionConstraints.gridx = 0;
+        instructionConstraints.gridy = 0;
+        instructionConstraints.gridwidth = 3;
+        instructionConstraints.fill = GridBagConstraints.BOTH;
+        topPanel.add(instructionLabel, instructionConstraints);
 
         // define merlotButton
         wineSelector = new ButtonGroup();
         JRadioButton merlotButton = new JRadioButton(WindowLabels.MERLOT_BUTTON_TEXT);
+        var merlotConstraints = new GridBagConstraints();
         merlotButton.setName(WindowLabels.MERLOT_BUTTON);
-        merlotButton.setHorizontalAlignment(SwingConstants.CENTER);
         merlotButton.addActionListener(controller);
+        merlotConstraints.gridx = 0;
+        merlotConstraints.gridy = 1;
+        merlotConstraints.weightx = 0.33;
         wineSelector.add(merlotButton);
+        topPanel.add(merlotButton, merlotConstraints);
 
         // define roseButton
         JRadioButton roseButton = new JRadioButton(WindowLabels.ROSE_BUTTON_TEXT);
+        var roseConstraints = new GridBagConstraints();
         roseButton.setName(WindowLabels.ROSE_BUTTON);
-        roseButton.setHorizontalAlignment(SwingConstants.CENTER);
         roseButton.addActionListener(controller);
+        roseConstraints.gridx = 1;
+        roseConstraints.gridy = 1;
+        roseConstraints.weightx = 0.34;
         wineSelector.add(roseButton);
+        topPanel.add(roseButton, roseConstraints);
 
         // define sauvignonButton
         JRadioButton sauvignonButton = new JRadioButton(WindowLabels.SAUVIGNON_BUTTON_TEXT);
+        var sauvignonConstraints = new GridBagConstraints();
         sauvignonButton.setName(WindowLabels.SAUVIGNON_BUTTON);
-        sauvignonButton.setHorizontalAlignment(SwingConstants.CENTER);
         sauvignonButton.addActionListener(controller);
+        sauvignonConstraints.gridx = 2;
+        sauvignonConstraints.gridy = 1;
+        sauvignonConstraints.weightx = 0.33;
         wineSelector.add(sauvignonButton);
-
-        // add components to the topPanel
-        topPanel.add(instructionLabel, BorderLayout.NORTH);
-        topPanel.add(merlotButton, BorderLayout.WEST);
-        topPanel.add(roseButton, BorderLayout.CENTER);
-        topPanel.add(sauvignonButton, BorderLayout.EAST);
+        topPanel.add(sauvignonButton, sauvignonConstraints);
 
         return topPanel;
     }
@@ -102,9 +118,26 @@ public class RootWindow extends JFrame {
     private JPanel buildOrderInputPanel() {
         orderInputPanel = new JPanel();
         orderInputPanel.setName(WindowLabels.MIDDLE_PANEL_NAME);
-        orderInputPanel.setLayout(new FlowLayout());
-        orderInputPanel.setBounds(0, 50, 300, 150);
+        orderInputPanel.setLayout(new GridBagLayout());
         orderInputPanel.setVisible(false);
+
+        // define labels
+        var labelConstraints = new GridBagConstraints();
+        JLabel amountLabel = new JLabel();
+        amountLabel.setText("Cases:");
+        labelConstraints.gridx = 0;
+        labelConstraints.gridy = 0;
+        labelConstraints.anchor = GridBagConstraints.LINE_END;
+        labelConstraints.insets = new Insets(0, 0, 5, 5);
+        orderInputPanel.add(amountLabel, labelConstraints);
+        JLabel supplierLabel = new JLabel();
+        supplierLabel.setText("Supplier:");
+        labelConstraints.gridy = 1;
+        orderInputPanel.add(supplierLabel, labelConstraints);
+        JLabel priceLabel = new JLabel();
+        priceLabel.setText("Purchased Price:");
+        labelConstraints.gridy = 2;
+        orderInputPanel.add(priceLabel, labelConstraints);
 
         // define amountComboBox
         amountComboBox = new JComboBox<>(
@@ -113,29 +146,41 @@ public class RootWindow extends JFrame {
                          .toArray(Integer[]::new));
         amountComboBox.setName(WindowLabels.AMOUNT_COMBO_BOX);
         amountComboBox.setSelectedIndex(-1);
+        var amountConstraints = new GridBagConstraints();
+        amountConstraints.gridx = 1;
+        amountConstraints.gridy = 0;
+        amountConstraints.anchor = GridBagConstraints.LINE_START;
+        amountConstraints.insets = new Insets(0, 0, 5, 0);
+        orderInputPanel.add(amountComboBox, amountConstraints);
 
         // define supplierComboBox
         supplierComboBox = new JComboBox<>();
         supplierComboBox.setName(WindowLabels.SUPPLIER_COMBO_BOX);
         supplierComboBox.setEditable(true);
+        var supplierConstraints = new GridBagConstraints();
+        supplierConstraints.gridx = 1;
+        supplierConstraints.gridy = 1;
+        supplierConstraints.anchor = GridBagConstraints.LINE_START;
+        supplierConstraints.insets = new Insets(0, 0, 5, 0);
+        orderInputPanel.add(supplierComboBox, supplierConstraints);
 
         // define priceTextField
         priceTextField = new JTextField();
         priceTextField.setName(WindowLabels.PURCHASED_PRICE_TEXT_FIELD);
-        priceTextField.setColumns(10);
+        var priceConstraints = new GridBagConstraints();
+        priceConstraints.gridx = 1;
+        priceConstraints.gridy = 2;
+        priceConstraints.anchor = GridBagConstraints.LINE_START;
+        priceConstraints.fill = GridBagConstraints.HORIZONTAL;
+        orderInputPanel.add(priceTextField, priceConstraints);
 
-        // add components to the middlePanel
-        orderInputPanel.add(amountComboBox);
-        orderInputPanel.add(supplierComboBox);
-        orderInputPanel.add(priceTextField);
         return orderInputPanel;
     }
 
     private JPanel buildBottomPanel() {
         var bottomPanel = new JPanel();
         bottomPanel.setName(WindowLabels.BOTTOM_PANEL_NAME);
-        bottomPanel.setLayout(new GridLayout(3, 1));
-        bottomPanel.setBounds(0, 205, 300, 50);
+        bottomPanel.setLayout(new GridBagLayout());
 
         // define successLabel
         successLabel = new JLabel();
@@ -143,7 +188,21 @@ public class RootWindow extends JFrame {
         successLabel.setText(WindowLabels.SUCCESS_LABEL_TEXT);
         successLabel.setHorizontalAlignment(SwingConstants.CENTER);
         successLabel.setVisible(false);
-        bottomPanel.add(successLabel);
+        var successConstraints = new GridBagConstraints();
+        successConstraints.gridx = 0;
+        successConstraints.gridy = 0;
+        successConstraints.fill = GridBagConstraints.NONE;
+        bottomPanel.add(successLabel, successConstraints);
+
+        // define messageLabel
+        messageLabel = new JLabel();
+        messageLabel.setName(WindowLabels.MESSAGE_LABEL_NAME);
+        messageLabel.setText("");
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        var messageConstraints = new GridBagConstraints();
+        messageConstraints.gridx = 0;
+        messageConstraints.gridy = 1;
+        bottomPanel.add(messageLabel, messageConstraints);
 
         // define submitButton
         submitButton = new JButton();
@@ -151,13 +210,10 @@ public class RootWindow extends JFrame {
         submitButton.setText(WindowLabels.SUBMIT_BUTTON_TEXT);
         submitButton.setEnabled(false);
         submitButton.addActionListener(controller);
-        bottomPanel.add(submitButton);
-
-        // define messageLabel
-        messageLabel = new JLabel();
-        messageLabel.setName(WindowLabels.MESSAGE_LABEL_NAME);
-        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        bottomPanel.add(messageLabel);
+        var submitConstraints = new GridBagConstraints();
+        submitConstraints.gridx = 0;
+        submitConstraints.gridy = 2;
+        bottomPanel.add(submitButton, submitConstraints);
 
         return bottomPanel;
     }
@@ -165,50 +221,68 @@ public class RootWindow extends JFrame {
     private JPanel buildOrdersPanel() {
         var ordersPane = new JPanel();
         ordersPane.setName(WindowLabels.ORDERS_PANE_NAME);
-        ordersPane.setLayout(new BorderLayout());
+        ordersPane.setLayout(new GridBagLayout());
 
         supplierNames = new JComboBox<>();
         supplierNames.setName(WindowLabels.ORDERS_COMBO_BOX);
         supplierNames.setEditable(false);
         supplierNames.addItem(WindowLabels.ORDERS_COMBO_ALL);
+        var supplierNamesConstraints = new GridBagConstraints();
+        supplierNamesConstraints.gridx = 0;
+        supplierNamesConstraints.gridy = 0;
+        supplierNamesConstraints.anchor = GridBagConstraints.LINE_END;
+        ordersPane.add(supplierNames, supplierNamesConstraints);
 
         var filterButton = new JButton();
         filterButton.setName(WindowLabels.FILTER_BUTTON_NAME);
         filterButton.setText(WindowLabels.FILTER_BUTTON_TEXT);
         filterButton.addActionListener(controller);
+        var filterConstraints = new GridBagConstraints();
+        filterConstraints.gridx = 1;
+        filterConstraints.gridy = 0;
+        filterConstraints.anchor = GridBagConstraints.CENTER;
+        ordersPane.add(filterButton, filterConstraints);
 
         ordersTableModel = new DefaultTableModel(WindowLabels.ORDERS_TABLE_COLUMNS, 0);
         ordersTable = new JTable(ordersTableModel);
+        var scrollPane = new JScrollPane(ordersTable);
+        scrollPane.setName(WindowLabels.ORDERS_TABLE_NAME.toLowerCase());
         ordersTable.setName(WindowLabels.ORDERS_TABLE_NAME);
         ordersTableSorter = new TableRowSorter<>(ordersTableModel);
+        ordersTable.setRowSorter(ordersTableSorter);
+        var ordersTableConstraints = new GridBagConstraints();
+        ordersTableConstraints.gridx = 0;
+        ordersTableConstraints.gridy = 1;
+        ordersTableConstraints.gridwidth = 2;
+        ordersTableConstraints.fill = GridBagConstraints.BOTH;
+        ordersTableConstraints.insets = new Insets(5, 0, 0, 0);
+        ordersTableConstraints.weighty = 1.0;
+        ordersPane.add(scrollPane, ordersTableConstraints);
 
-        ordersPane.add(supplierNames, BorderLayout.WEST);
-        ordersPane.add(filterButton, BorderLayout.EAST);
-        ordersPane.add(ordersTable, BorderLayout.SOUTH);
         return ordersPane;
     }
 
-    JPanel orderInputPanel() { return orderInputPanel; }
+    JPanel orderInputPanel() {return orderInputPanel;}
 
-    JComboBox<String> supplierComboBox() { return supplierComboBox; }
+    JComboBox<String> supplierComboBox() {return supplierComboBox;}
 
-    JTextField priceTextField() { return priceTextField; }
+    JTextField priceTextField() {return priceTextField;}
 
-    JComboBox<Integer> amountComboBox() { return amountComboBox; }
+    JComboBox<Integer> amountComboBox() {return amountComboBox;}
 
-    JButton submitButton() { return submitButton; }
+    JButton submitButton() {return submitButton;}
 
-    JLabel successLabel() { return successLabel; }
+    JLabel successLabel() {return successLabel;}
 
-    JLabel messageLabel() { return messageLabel; }
+    JLabel messageLabel() {return messageLabel;}
 
-    JComboBox<String> supplierNamesComboBox() { return supplierNames; }
+    JComboBox<String> supplierNamesComboBox() {return supplierNames;}
 
-    JTable ordersTable() { return ordersTable; }
+    JTable ordersTable() {return ordersTable;}
 
-    TableRowSorter<DefaultTableModel> ordersTableSorter() { return ordersTableSorter; }
+    TableRowSorter<DefaultTableModel> ordersTableSorter() {return ordersTableSorter;}
 
-    DefaultTableModel ordersTableModel() { return ordersTableModel; }
+    DefaultTableModel ordersTableModel() {return ordersTableModel;}
 
     String getSelectedWine() {
         Enumeration<AbstractButton> radioButtons = wineSelector.getElements();
