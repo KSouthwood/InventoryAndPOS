@@ -3,11 +3,18 @@ package com.github.ksouthwood.possystem;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class Controller extends AbstractAction {
     final private RootWindow rootWindow;
-    final private DBHandler dbHandler;
+    final private DBHandler  dbHandler;
+
+    private int bottlesRose = 0;
+    private int bottlesMerlot = 0;
+    private int bottlesSauvignon = 0;
+    private int bottlesTotal = 0;
 
     public Controller(final RootWindow rootWindow, final String databaseName) {
         this.rootWindow = rootWindow;
@@ -64,33 +71,56 @@ public class Controller extends AbstractAction {
     }
 
     private void inputOrderValid(final String supplier, final String wine, final int cases, final double price) {
-        int bottles = cases * 12;
-        boolean isPaid = false; // new order so it isn't paid yet
+        int     bottles = cases * 12;
+        boolean isPaid  = false; // new order so it isn't paid yet
 
-        rootWindow.messageLabel().setText(String.format("Added %d cases of %s from %s (%d bottles).",
-                                                     cases, wine, supplier, bottles));
-        rootWindow.ordersTableModel().addRow(
-                new Object[] {supplier, wine, bottles, price, isPaid}
-        );
+        rootWindow.messageLabel()
+                  .setText(String.format("Added %d cases of %s from %s (%d bottles).",
+                                         cases, wine, supplier, bottles));
+        rootWindow.ordersTableModel()
+                  .addRow(
+                          new Object[]{supplier, wine, bottles, price, isPaid}
+                  );
         dbHandler.addSupplierOrder(supplier, wine, bottles, price, isPaid);
-        rootWindow.successLabel().setVisible(true);
-        rootWindow.submitButton().setEnabled(false);
-        rootWindow.orderInputPanel().setVisible(false);
-        rootWindow.amountComboBox().setSelectedIndex(-1);
-        rootWindow.priceTextField().setText("");
+
+        updateInventoryCount(wine, bottles);
+
+        rootWindow.successLabel()
+                  .setVisible(true);
+        rootWindow.submitButton()
+                  .setEnabled(false);
+        rootWindow.orderInputPanel()
+                  .setVisible(false);
+        rootWindow.amountComboBox()
+                  .setSelectedIndex(-1);
+        rootWindow.priceTextField()
+                  .setText("");
 
         if (rootWindow.supplierComboBox()
                       .getSelectedIndex() == -1) {
-            rootWindow.supplierComboBox().addItem(supplier);
-            rootWindow.supplierNamesComboBox().addItem(supplier);
+            rootWindow.supplierComboBox()
+                      .addItem(supplier);
+            rootWindow.supplierNamesComboBox()
+                      .addItem(supplier);
         }
 
-        rootWindow.supplierComboBox().setSelectedIndex(-1);
+        rootWindow.supplierComboBox()
+                  .setSelectedIndex(-1);
+    }
+
+    private void updateInventoryCount(final String wine, final int bottles) {
+        switch(wine) {
+            case WindowLabels.MERLOT_BUTTON_TEXT -> bottlesMerlot += bottles;
+            case WindowLabels.ROSE_BUTTON_TEXT -> bottlesRose += bottles;
+            case WindowLabels.SAUVIGNON_BUTTON_TEXT -> bottlesSauvignon += bottles;
+        }
+        bottlesTotal += bottles;
+        rootWindow.updateInventoryCount(bottlesMerlot, bottlesRose, bottlesSauvignon, bottlesTotal);
     }
 
     private Optional<String> getSupplier() {
-        var supplier = rootWindow.supplierComboBox();
-        var supplierName = (String) supplier.getSelectedItem();
+        var supplier      = rootWindow.supplierComboBox();
+        var supplierName  = (String) supplier.getSelectedItem();
         var supplierIndex = supplier.getSelectedIndex();
 
         if (supplierName == null) {
@@ -99,7 +129,8 @@ public class Controller extends AbstractAction {
 
         if (supplierIndex == -1) {
             if (!supplierName.matches("[\\w ]+")) {
-                rootWindow.messageLabel().setText("Error: supplier name contains invalid characters");
+                rootWindow.messageLabel()
+                          .setText("Error: supplier name contains invalid characters");
                 resetOrderInputPanel();
                 return Optional.empty();
             }
@@ -109,20 +140,24 @@ public class Controller extends AbstractAction {
     }
 
     private Optional<Double> getPrice() {
-        var price = rootWindow.priceTextField().getText();
+        var price = rootWindow.priceTextField()
+                              .getText();
         try {
             return Optional.of(Double.parseDouble(price));
         } catch (NumberFormatException nfe) {
-            rootWindow.messageLabel().setText("Error: price must be a number");
+            rootWindow.messageLabel()
+                      .setText("Error: price must be a number");
             resetOrderInputPanel();
             return Optional.empty();
         }
     }
 
     private Optional<Integer> getAmount() {
-        var index = rootWindow.amountComboBox().getSelectedIndex();
+        var index = rootWindow.amountComboBox()
+                              .getSelectedIndex();
         if (index == -1) {
-            rootWindow.messageLabel().setText("Error: Please choose an amount");
+            rootWindow.messageLabel()
+                      .setText("Error: Please choose an amount");
             return Optional.empty();
         }
         return Optional.of(rootWindow.amountComboBox()
@@ -130,12 +165,15 @@ public class Controller extends AbstractAction {
     }
 
     private void resetOrderInputPanel() {
-        rootWindow.supplierComboBox().setSelectedIndex(-1);
-        rootWindow.priceTextField().setText("");
+        rootWindow.supplierComboBox()
+                  .setSelectedIndex(-1);
+        rootWindow.priceTextField()
+                  .setText("");
     }
 
     private void filterSuppliers() {
-        var selected = rootWindow.supplierNamesComboBox().getSelectedItem();
+        var selected = rootWindow.supplierNamesComboBox()
+                                 .getSelectedItem();
         if (selected == null) {
             return;
         }
@@ -158,5 +196,26 @@ public class Controller extends AbstractAction {
                             .equals(supplier);
             }
         };
+    }
+
+    void loadFromDatabase() {
+        var orders = dbHandler.getAllRows();
+
+        if (orders != null) {
+            Set<String> suppliers = new HashSet<>();
+            for (var order : orders) {
+                rootWindow.ordersTableModel()
+                          .addRow(order);
+                suppliers.add(order[0].toString());
+                updateInventoryCount(order[1].toString(), (int) order[2]);
+            }
+
+            suppliers.forEach(supplier -> {
+                rootWindow.supplierComboBox()
+                          .addItem(supplier);
+                rootWindow.supplierNamesComboBox()
+                          .addItem(supplier);
+            });
+        }
     }
 }

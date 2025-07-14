@@ -54,9 +54,21 @@ SQL database. The filename of the database will be passed to the RootWindow clas
 
 Add a third screen where the program can display the status of the inventory from the supplier orders.
 
+##### _Description_
+
+Now that the program can store the orders into the database, it's time to visualize the inventory in our program. 
+The program should take the data from the database and reflect it in the corresponding labels. Additionally, as 
+users add new bottles from suppliers, this screen should reflect the updates immediately.
+
 ### Stage 5: [Point of Sale](https://hyperskill.org/projects/211/stages/1061/implement)
 
 #### _Summary_
 
 Add a simple POS system that creates orders for customers. It should communicate with the inventory to see if users 
 have enough stock of the specified wines to complete the order.
+
+##### _Description_
+
+Well done! Your program now keeps excellent track of the Merchant's inventory! In the final stage, you need to add 
+the final touch—users should be able to input sales orders. Add a new tab to enable customers to place orders for 
+wine and update the inventory count after each order.

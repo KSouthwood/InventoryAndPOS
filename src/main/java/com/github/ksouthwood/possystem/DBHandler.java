@@ -4,9 +4,19 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBHandler {
     private static final String JDBC_PREFIX = "jdbc:sqlite:";
+    private static final String TABLE_NAME = "supplier_orders";
+
+    static final String SUPPLIER = "supplier_name";
+    static final String WINE = "wine_type";
+    static final String AMOUNT = "amount_purchased";
+    static final String PRICE = "price_paid";
+    static final String PAID = "is_paid";
+
     private final String dbName;
     private final String url;
 
@@ -32,13 +42,13 @@ public class DBHandler {
         try (Connection conn = DriverManager.getConnection(url)) {
             if (conn != null) {
                 var stmt = conn.createStatement();
-                stmt.execute("CREATE TABLE IF NOT EXISTS supplier_orders (" +
+                stmt.execute("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
                              "order_id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                             "supplier_name TEXT NOT NULL," +
-                             "wine_type TEXT NOT NULL," +
-                             "amount_purchased INTEGER NOT NULL," +
-                             "price_paid REAL NOT NULL," +
-                             "is_paid BOOLEAN NOT NULL)");
+                             SUPPLIER + " TEXT NOT NULL," +
+                             WINE + " TEXT NOT NULL," +
+                             AMOUNT + " INTEGER NOT NULL," +
+                             PRICE + " REAL NOT NULL," +
+                             PAID + " BOOLEAN NOT NULL)");
             }
         } catch (SQLException e) {
             System.err.println("Error creating database: " + e.getMessage());
@@ -47,7 +57,8 @@ public class DBHandler {
     
     void addSupplierOrder(final String supplierName, final String wineType, final int amountPurchased,
                                  final double pricePaid, final boolean isPaid) {
-        String sql = "INSERT INTO supplier_orders (supplier_name, wine_type, amount_purchased, price_paid, is_paid) VALUES (?, ?, ?, ?, ?)";
+        String sql = String.format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?)",
+                                   TABLE_NAME, SUPPLIER, WINE, AMOUNT, PRICE, PAID);
 
         try (Connection conn = DriverManager.getConnection(url);
              var preparedStatement = conn.prepareStatement(sql)) {
@@ -60,5 +71,24 @@ public class DBHandler {
         } catch (SQLException e) {
             System.err.println("Error adding supplier order: " + e.getMessage());
         }
+    }
+
+    List<Object[]> getAllRows() {
+        List<Object[]> rows = new ArrayList<>();
+        try (Connection connection = DriverManager.getConnection(url)) {
+            var resultSet = connection.createStatement().executeQuery("SELECT * FROM " + TABLE_NAME);
+            while (resultSet.next()) {
+                rows.add(new Object[] {
+                        resultSet.getString(SUPPLIER),
+                        resultSet.getString(WINE),
+                        resultSet.getInt(AMOUNT),
+                        resultSet.getDouble(PRICE),
+                        resultSet.getBoolean(PAID)
+                });
+            }
+        } catch (SQLException e) {
+            System.err.println("Error reading from database: " + e.getMessage());
+        }
+        return rows;
     }
 }

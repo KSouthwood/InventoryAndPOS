@@ -20,8 +20,12 @@ public class RootWindow extends JFrame {
     private JLabel                            successLabel;
     private DefaultTableModel                 ordersTableModel;
     private JComboBox<String>                 supplierNames;
-    private JTable                            ordersTable;
     private TableRowSorter<DefaultTableModel> ordersTableSorter;
+
+    private JLabel                            merlotAmount;
+    private JLabel                            roseAmount;
+    private JLabel                            sauvignonAmount;
+    private JLabel                            totalAmount;
 
     public RootWindow() {
         this("orders.db");
@@ -37,6 +41,7 @@ public class RootWindow extends JFrame {
         this.setLayout(new FlowLayout());
         this.controller = new Controller(this, databaseName);
         buildWindow();
+        controller.loadFromDatabase();
         this.pack();
         this.setVisible(true);
     }
@@ -47,6 +52,7 @@ public class RootWindow extends JFrame {
 
         tabbedPane.addTab(WindowLabels.SUPPLIER_PANE_TITLE, buildSupplierOrderPanel());
         tabbedPane.addTab(WindowLabels.ORDERS_PANE_TITLE, buildOrdersPanel());
+        tabbedPane.addTab(WindowLabels.INVENTORY_TAB_NAME, buildInventoryPanel());
 
         this.add(tabbedPane);
     }
@@ -157,6 +163,7 @@ public class RootWindow extends JFrame {
         supplierComboBox = new JComboBox<>();
         supplierComboBox.setName(WindowLabels.SUPPLIER_COMBO_BOX);
         supplierComboBox.setEditable(true);
+        supplierComboBox.setSelectedIndex(-1);
         var supplierConstraints = new GridBagConstraints();
         supplierConstraints.gridx = 1;
         supplierConstraints.gridy = 1;
@@ -244,7 +251,7 @@ public class RootWindow extends JFrame {
         ordersPane.add(filterButton, filterConstraints);
 
         ordersTableModel = new DefaultTableModel(WindowLabels.ORDERS_TABLE_COLUMNS, 0);
-        ordersTable = new JTable(ordersTableModel);
+        var ordersTable = new JTable(ordersTableModel);
         var scrollPane = new JScrollPane(ordersTable);
         scrollPane.setName(WindowLabels.ORDERS_TABLE_NAME.toLowerCase());
         ordersTable.setName(WindowLabels.ORDERS_TABLE_NAME);
@@ -260,6 +267,79 @@ public class RootWindow extends JFrame {
         ordersPane.add(scrollPane, ordersTableConstraints);
 
         return ordersPane;
+    }
+
+    private JPanel buildInventoryPanel() {
+        var inventoryPane = new JPanel();
+        inventoryPane.setLayout(new GridBagLayout());
+        var constraints = new GridBagConstraints();
+        constraints.insets = new Insets(2, 2, 2, 2);
+
+//        var merlotLabel = new JLabel();
+//        merlotLabel.setText(WindowLabels.MERLOT_AMOUNT_TEXT);
+//        constraints.gridx = 0;
+//        constraints.gridy = 0;
+//        constraints.anchor = GridBagConstraints.LINE_END;
+//        inventoryPane.add(merlotLabel, constraints);
+
+        merlotAmount = new JLabel();
+        merlotAmount.setName(WindowLabels.MERLOT_AMOUNT_LABEL_NAME);
+        merlotAmount.setText(WindowLabels.MERLOT_AMOUNT_LABEL_TEXT);
+//        merlotAmount.setText(WindowLabels.MERLOT_AMOUNT_TEXT + " " + WindowLabels.MERLOT_AMOUNT_LABEL_TEXT);
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.anchor = GridBagConstraints.CENTER;
+        inventoryPane.add(merlotAmount, constraints);
+
+//        var roseLabel = new JLabel();
+//        roseLabel.setText(WindowLabels.ROSE_AMOUNT_TEXT);
+//        constraints.gridx = 0;
+//        constraints.gridy = 1;
+//        constraints.anchor = GridBagConstraints.LINE_END;
+//        inventoryPane.add(roseLabel, constraints);
+
+        roseAmount = new JLabel();
+        roseAmount.setName(WindowLabels.ROSE_AMOUNT_LABEL_NAME);
+        roseAmount.setText(WindowLabels.ROSE_AMOUNT_LABEL_TEXT);
+//        roseAmount.setText(WindowLabels.ROSE_AMOUNT_TEXT + " " + WindowLabels.ROSE_AMOUNT_LABEL_TEXT);
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.anchor = GridBagConstraints.CENTER;
+        inventoryPane.add(roseAmount, constraints);
+
+//        var sauvignonLabel = new JLabel();
+//        sauvignonLabel.setText(WindowLabels.SAUVIGNON_AMOUNT_TEXT);
+//        constraints.gridx = 0;
+//        constraints.gridy = 2;
+//        constraints.anchor = GridBagConstraints.LINE_END;
+//        inventoryPane.add(sauvignonLabel, constraints);
+
+        sauvignonAmount = new JLabel();
+        sauvignonAmount.setName(WindowLabels.SAUVIGNON_AMOUNT_LABEL_NAME);
+        sauvignonAmount.setText(WindowLabels.SAUVIGNON_AMOUNT_LABEL_TEXT);
+//        sauvignonAmount.setText(WindowLabels.SAUVIGNON_AMOUNT_TEXT + " " + WindowLabels.SAUVIGNON_AMOUNT_LABEL_TEXT);
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.anchor = GridBagConstraints.CENTER;
+        inventoryPane.add(sauvignonAmount, constraints);
+
+//        var totalLabel = new JLabel();
+//        totalLabel.setText(WindowLabels.TOTAL_AMOUNT_TEXT);
+//        constraints.gridx = 0;
+//        constraints.gridy = 3;
+//        constraints.anchor = GridBagConstraints.LINE_END;
+//        inventoryPane.add(totalLabel, constraints);
+
+        totalAmount = new JLabel();
+        totalAmount.setName(WindowLabels.TOTAL_AMOUNT_LABEL_NAME);
+        totalAmount.setText(WindowLabels.TOTAL_AMOUNT_LABEL_TEXT);
+//        totalAmount.setText(WindowLabels.TOTAL_AMOUNT_TEXT + " " + WindowLabels.TOTAL_AMOUNT_LABEL_TEXT);
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        constraints.anchor = GridBagConstraints.CENTER;
+        inventoryPane.add(totalAmount, constraints);
+
+        return inventoryPane;
     }
 
     JPanel orderInputPanel() {return orderInputPanel;}
@@ -278,8 +358,6 @@ public class RootWindow extends JFrame {
 
     JComboBox<String> supplierNamesComboBox() {return supplierNames;}
 
-    JTable ordersTable() {return ordersTable;}
-
     TableRowSorter<DefaultTableModel> ordersTableSorter() {return ordersTableSorter;}
 
     DefaultTableModel ordersTableModel() {return ordersTableModel;}
@@ -293,5 +371,16 @@ public class RootWindow extends JFrame {
             }
         }
         return null;
+    }
+
+    void updateInventoryCount(final int merlotCount, final int roseCount, final int sauvignonCount, final int totalCount) {
+//        merlotAmount.setText(WindowLabels.MERLOT_AMOUNT_TEXT + " " + String.valueOf(merlotCount));
+//        roseAmount.setText(WindowLabels.ROSE_AMOUNT_TEXT + " " + String.valueOf(roseCount));
+//        sauvignonAmount.setText(WindowLabels.SAUVIGNON_AMOUNT_TEXT + " " + String.valueOf(sauvignonCount));
+//        totalAmount.setText(WindowLabels.TOTAL_AMOUNT_TEXT + " " + String.valueOf(totalCount));
+        merlotAmount.setText(String.valueOf(merlotCount));
+        sauvignonAmount.setText(String.valueOf(sauvignonCount));
+        roseAmount.setText(String.valueOf(roseCount));
+        totalAmount.setText(String.valueOf(totalCount));
     }
 }

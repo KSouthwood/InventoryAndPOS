@@ -51,4 +51,19 @@ public class WindowLabels {
     public static final String   ORDERS_TABLE_NAME    = "OrdersTable";
     public static final String[] ORDERS_TABLE_COLUMNS = {"Supplier", "Wine", "Amount Purchased", "Purchased Price",
                                                          "Paid"};
+
+    // Inventory Pane strings
+    public static final String INVENTORY_TAB_NAME = "Inventory";
+    public static final String MERLOT_AMOUNT_TEXT = "Merlot:";
+    public static final String MERLOT_AMOUNT_LABEL_NAME = "MerlotAmountLabel";
+    public static final String MERLOT_AMOUNT_LABEL_TEXT = "0";
+    public static final String ROSE_AMOUNT_TEXT = "Rose:";
+    public static final String ROSE_AMOUNT_LABEL_NAME = "RoseAmountLabel";
+    public static final String ROSE_AMOUNT_LABEL_TEXT = "0";
+    public static final String SAUVIGNON_AMOUNT_TEXT = "Sauvignon:";
+    public static final String SAUVIGNON_AMOUNT_LABEL_NAME = "SauvignonAmountLabel";
+    public static final String SAUVIGNON_AMOUNT_LABEL_TEXT = "0";
+    public static final String TOTAL_AMOUNT_TEXT = "Total:";
+    public static final String TOTAL_AMOUNT_LABEL_NAME = "TotalAmountLabel";
+    public static final String TOTAL_AMOUNT_LABEL_TEXT = "0";
 }
