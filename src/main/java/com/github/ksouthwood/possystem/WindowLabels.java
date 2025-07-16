@@ -66,4 +66,39 @@ public class WindowLabels {
     public static final String TOTAL_AMOUNT_TEXT = "Total:";
     public static final String TOTAL_AMOUNT_LABEL_NAME = "TotalAmountLabel";
     public static final String TOTAL_AMOUNT_LABEL_TEXT = "0";
+
+    // Customer Order Pane strings
+    public static final String CUSTOMER_ORDER_TAB_NAME = "Customer Sale";
+    public static final String POS_TOP_PANEL_NAME = "PosTopPanel";
+    public static final String POS_INSTRUCTION_LABEL_NAME = "PosInstructionLabel";
+    public static final String POS_INSTRUCTION_LABEL_TEXT = "Select if the sale is...";
+    public static final String SINGLE_TYPE_BUTTON_NAME = "SingleTypeOrderButton";
+    public static final String SINGLE_TYPE_BUTTON_TEXT = "Single Type";
+    public static final String MIXED_TYPE_BUTTON_NAME = "MixedTypeOrderButton";
+    public static final String MIXED_TYPE_BUTTON_TEXT = "Mixed Type";
+
+    public static final String SINGLE_TYPE_PANEL_NAME = "SingleTypePanel";
+    public static final String SINGLE_WINE_SELECT_TEXT = "Select wine:";
+    public static final String SINGLE_WINE_COMBO_BOX_NAME = "SingleWineKindBox";
+    public static final String SINGLE_WINE_CONFIRM_BUTTON_NAME = "SingleConfirmButton";
+    public static final String SINGLE_WINE_CONFIRM_BUTTON_TEXT = "Confirm";
+
+    public static final String MIXED_TYPE_PANEL_NAME = "MixedTypePanel";
+    public static final String MIXED_WINE_SELECT_TEXT = "Select wines:";
+    public static final String MIXED_WINE_COMBO_BOX_ONE_NAME = "MixedWineComboBox1";
+    public static final String MIXED_WINE_COMBO_BOX_TWO_NAME = "MixedWineComboBox2";
+    public static final String MIXED_WINE_CONFIRM_BUTTON_NAME = "MixedConfirmButton";
+    public static final String MIXED_WINE_CONFIRM_BUTTON_TEXT = "Confirm";
+
+    public static final String POS_BOTTOM_PANEL_NAME = "PosBottomPanel";
+    public static final String CUSTOMER_NAME_LABEL_TEXT = "Customer Name:";
+    public static final String CUSTOMER_NAME_TEXT_FIELD_NAME = "CustomerNameField";
+    public static final String SALE_AMOUNT_LABEL_TEXT = "Sale Amount:";
+    public static final String SALE_AMOUNT_LABEL_FIELD_NAME = "SaleAmountField";
+    public static final String LOYALTY_DISCOUNT_BUTTON_NAME = "LoyaltyDiscountButton";
+    public static final String LOYALTY_DISCOUNT_BUTTON_TEXT = "Loyalty discount (15%)";
+    public static final String SUBMIT_ORDER_BUTTON_NAME = "SubmitOrderButton";
+    public static final String SUBMIT_ORDER_BUTTON_TEXT = "Submit";
+    public static final String SALE_MESSAGE_LABEL_NAME = "SaleMessageLabel";
+    public static final String SALE_SUCCESS_LABEL_NAME = "SaleSuccessMessageLabel";
 }

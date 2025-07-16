@@ -11,10 +11,10 @@ public class Controller extends AbstractAction {
     final private RootWindow rootWindow;
     final private DBHandler  dbHandler;
 
-    private int bottlesRose = 0;
-    private int bottlesMerlot = 0;
+    private int bottlesRose      = 0;
+    private int bottlesMerlot    = 0;
     private int bottlesSauvignon = 0;
-    private int bottlesTotal = 0;
+    private int bottlesTotal     = 0;
 
     public Controller(final RootWindow rootWindow, final String databaseName) {
         this.rootWindow = rootWindow;
@@ -25,14 +25,21 @@ public class Controller extends AbstractAction {
     public void actionPerformed(ActionEvent actionEvent) {
         var source = (JComponent) actionEvent.getSource();
 
-        switch (source) {
-            case JRadioButton ignored -> wineButtonSelected();
-            case JButton button -> {
-                switch (button.getName()) {
-                    case WindowLabels.SUBMIT_BUTTON_NAME -> submitButtonPressed();
-                    case WindowLabels.FILTER_BUTTON_NAME -> filterSuppliers();
-                }
-            }
+        switch (source.getName()) {
+            case WindowLabels.MERLOT_BUTTON,
+                 WindowLabels.ROSE_BUTTON,
+                 WindowLabels.SAUVIGNON_BUTTON -> wineButtonSelected();
+
+            case WindowLabels.SUBMIT_BUTTON_NAME -> submitButtonPressed();
+            case WindowLabels.FILTER_BUTTON_NAME -> filterSuppliers();
+
+            case WindowLabels.SINGLE_TYPE_BUTTON_NAME,
+                 WindowLabels.MIXED_TYPE_BUTTON_NAME -> orderTypeButtonSelected(source.getName());
+
+            case WindowLabels.SINGLE_WINE_CONFIRM_BUTTON_NAME -> singleWineOrder();
+            case WindowLabels.MIXED_WINE_CONFIRM_BUTTON_NAME -> mixedWineOrder();
+
+            case WindowLabels.SUBMIT_ORDER_BUTTON_NAME -> customerOrderPlaced();
             default -> {
             }
         }
@@ -109,7 +116,7 @@ public class Controller extends AbstractAction {
     }
 
     private void updateInventoryCount(final String wine, final int bottles) {
-        switch(wine) {
+        switch (wine) {
             case WindowLabels.MERLOT_BUTTON_TEXT -> bottlesMerlot += bottles;
             case WindowLabels.ROSE_BUTTON_TEXT -> bottlesRose += bottles;
             case WindowLabels.SAUVIGNON_BUTTON_TEXT -> bottlesSauvignon += bottles;
@@ -216,6 +223,182 @@ public class Controller extends AbstractAction {
                 rootWindow.supplierNamesComboBox()
                           .addItem(supplier);
             });
+
+            rootWindow.supplierComboBox()
+                      .setSelectedIndex(-1);
+
         }
+    }
+
+    private void orderTypeButtonSelected(final String buttonName) {
+        rootWindow.saleSuccessMessageLabel()
+                  .setText(" ");
+
+        switch (buttonName) {
+            case WindowLabels.SINGLE_TYPE_BUTTON_NAME -> {
+                rootWindow.singleTypePanel()
+                          .setVisible(true);
+                rootWindow.mixedTypePanel()
+                          .setVisible(false);
+            }
+            case WindowLabels.MIXED_TYPE_BUTTON_NAME -> {
+                rootWindow.mixedTypePanel()
+                          .setVisible(true);
+                rootWindow.singleTypePanel()
+                          .setVisible(false);
+            }
+            default -> {
+            }
+        }
+    }
+
+    private void singleWineOrder() {
+        var wineType = (String) rootWindow.singleComboBox()
+                                          .getSelectedItem();
+        rootWindow.saleMessageLabel()
+                  .setText(String.format("Selected wine: %s", wineType));
+        enablePosBottomPanel();
+    }
+
+    private void mixedWineOrder() {
+        var wineType1 = (String) rootWindow.mixedComboBox1()
+                                           .getSelectedItem();
+        var wineType2 = (String) rootWindow.mixedComboBox2()
+                                           .getSelectedItem();
+        if (wineType1.equals(wineType2)) {
+            rootWindow.saleMessageLabel()
+                      .setText("Error: Wine types must be different");
+            return;
+        }
+
+        rootWindow.saleMessageLabel()
+                  .setText(String.format("Selected wines: %s and %s", wineType1, wineType2));
+        enablePosBottomPanel();
+    }
+
+    private void customerOrderPlaced() {
+        var customerName = rootWindow.customerNameField()
+                                     .getText();
+        var amount       = rootWindow.saleAmountField()
+                                     .getText();
+        if (isCustomerOrderValid(customerName, amount)) {
+            processCustomerOrder(customerName, amount);
+        }
+    }
+
+    boolean isCustomerOrderValid(final String customerName, final String amount) {
+        if (!customerName.matches("[A-Z][a-z]*")) {
+            rootWindow.saleSuccessMessageLabel()
+                      .setText("Error: Customer name must start with a capital letter and contain only letters");
+            return false;
+        }
+        try {
+            Double.parseDouble(amount);
+        } catch (NumberFormatException nfe) {
+            rootWindow.saleSuccessMessageLabel()
+                      .setText("Error: Amount must be a number");
+            return false;
+        }
+        return true;
+    }
+
+    private void processCustomerOrder(final String customerName, final String amount) {
+        var discount = rootWindow.loyaltyDiscountButton()
+                                 .isSelected()
+                       ? 0.85
+                       : 1.00;
+        var price    = Double.parseDouble(amount) * discount;
+
+        boolean inventoryUpdated = false;
+
+        if (rootWindow.singleTypePanel()
+                      .isVisible()) {
+            inventoryUpdated = removeFromInventory(rootWindow.singleComboBox()
+                                                             .getSelectedItem()
+                                                             .toString(), 12);
+        } else {
+            inventoryUpdated = removeFromInventory(rootWindow.mixedComboBox1()
+                                                             .getSelectedItem()
+                                                             .toString(), 6) &&
+                    removeFromInventory(rootWindow.mixedComboBox2()
+                                                  .getSelectedItem()
+                                                  .toString(), 6);
+        }
+
+        if (inventoryUpdated) {
+            rootWindow.saleSuccessMessageLabel()
+                      .setText(String.format("Order sold to %s for $%f", customerName, price));
+            disablePosBottomPanel();
+        } else {
+            rootWindow.saleSuccessMessageLabel()
+                      .setText("Error: Not enough inventory to fulfill order");
+        }
+    }
+
+    private boolean removeFromInventory(final String wine, final int bottles) {
+        switch (wine) {
+            case WindowLabels.MERLOT_BUTTON_TEXT -> {
+                if (bottlesMerlot - bottles < 0) {
+                    return false;
+                }
+                bottlesMerlot -= bottles;
+            }
+            case WindowLabels.ROSE_BUTTON_TEXT -> {
+                if (bottlesRose - bottles < 0) {
+                    return false;
+                }
+                bottlesRose -= bottles;
+            }
+            case WindowLabels.SAUVIGNON_BUTTON_TEXT -> {
+                if (bottlesSauvignon - bottles < 0) {
+                    return false;
+                }
+                bottlesSauvignon -= bottles;
+            }
+        }
+        bottlesTotal -= bottles;
+        rootWindow.updateInventoryCount(bottlesMerlot, bottlesRose, bottlesSauvignon, bottlesTotal);
+        return true;
+    }
+
+    private void enablePosBottomPanel() {
+        rootWindow.customerNameField()
+                  .setEnabled(true);
+        rootWindow.saleAmountField()
+                  .setEnabled(true);
+        rootWindow.loyaltyDiscountButton()
+                  .setEnabled(true);
+        rootWindow.submitOrderButton()
+                  .setEnabled(true);
+        rootWindow.saleSuccessMessageLabel()
+                  .setText(" ");
+    }
+
+    private void disablePosBottomPanel() {
+        rootWindow.customerNameField()
+                  .setEnabled(false);
+        rootWindow.customerNameField()
+                  .setText("");
+
+        rootWindow.saleAmountField()
+                  .setEnabled(false);
+        rootWindow.saleAmountField()
+                  .setText("");
+
+        rootWindow.loyaltyDiscountButton()
+                  .setEnabled(false);
+        rootWindow.loyaltyDiscountButton()
+                  .setSelected(false);
+
+        rootWindow.submitOrderButton()
+                  .setEnabled(false);
+
+        rootWindow.singleTypePanel()
+                  .setVisible(false);
+        rootWindow.mixedTypePanel()
+                  .setVisible(false);
+
+        rootWindow.saleMessageLabel()
+                  .setText(" ");
     }
 }
