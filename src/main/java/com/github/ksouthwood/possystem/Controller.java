@@ -1,13 +1,15 @@
 package com.github.ksouthwood.possystem;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class Controller extends AbstractAction {
+public class Controller extends AbstractAction implements ChangeListener {
     final private RootWindow rootWindow;
     final private DBHandler  dbHandler;
 
@@ -122,7 +124,6 @@ public class Controller extends AbstractAction {
             case WindowLabels.SAUVIGNON_BUTTON_TEXT -> bottlesSauvignon += bottles;
         }
         bottlesTotal += bottles;
-        rootWindow.updateInventoryCount(bottlesMerlot, bottlesRose, bottlesSauvignon, bottlesTotal);
     }
 
     private Optional<String> getSupplier() {
@@ -357,7 +358,6 @@ public class Controller extends AbstractAction {
             }
         }
         bottlesTotal -= bottles;
-        rootWindow.updateInventoryCount(bottlesMerlot, bottlesRose, bottlesSauvignon, bottlesTotal);
         return true;
     }
 
@@ -400,5 +400,14 @@ public class Controller extends AbstractAction {
 
         rootWindow.saleMessageLabel()
                   .setText(" ");
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        var tabbedPane = (JTabbedPane) e.getSource();
+        var tabIndex  = tabbedPane.indexOfTab(WindowLabels.INVENTORY_TAB_NAME);
+        if (tabbedPane.getSelectedIndex() == tabIndex) {
+            rootWindow.updateInventoryCount(bottlesMerlot, bottlesRose, bottlesSauvignon, bottlesTotal);
+        }
     }
 }

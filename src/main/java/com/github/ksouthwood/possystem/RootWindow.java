@@ -70,6 +70,7 @@ public class RootWindow extends JFrame {
         tabbedPane.addTab(WindowLabels.INVENTORY_TAB_NAME, buildInventoryPanel());
         tabbedPane.addTab(WindowLabels.CUSTOMER_ORDER_TAB_NAME, customerOrderPanel());
 
+        tabbedPane.addChangeListener(controller);
         this.add(tabbedPane);
     }
 
