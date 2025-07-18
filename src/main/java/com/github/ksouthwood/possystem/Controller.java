@@ -1,24 +1,28 @@
 package com.github.ksouthwood.possystem;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class Controller extends AbstractAction {
-    final private RootWindow rootWindow;
-    final private DBHandler  dbHandler;
+public class Controller extends AbstractAction implements ChangeListener {
+    private final RootWindow rootWindow;
+    private final DBHandler  dbHandler;
 
-    private int bottlesRose      = 0;
-    private int bottlesMerlot    = 0;
-    private int bottlesSauvignon = 0;
-    private int bottlesTotal     = 0;
+    private final HashMap<String, Integer> wineInventory = new HashMap<>();
+
+    private final String TOTAL_BOTTLES_KEY = "Total";
+
 
     public Controller(final RootWindow rootWindow, final String databaseName) {
         this.rootWindow = rootWindow;
         this.dbHandler = new DBHandler(databaseName);
+        initBottlesMap();
     }
 
     @Override
@@ -43,6 +47,13 @@ public class Controller extends AbstractAction {
             default -> {
             }
         }
+    }
+
+    private void initBottlesMap() {
+        wineInventory.put(WindowLabels.MERLOT_BUTTON_TEXT, 0);
+        wineInventory.put(WindowLabels.ROSE_BUTTON_TEXT, 0);
+        wineInventory.put(WindowLabels.SAUVIGNON_BUTTON_TEXT, 0);
+        wineInventory.put(TOTAL_BOTTLES_KEY, 0);
     }
 
     private void wineButtonSelected() {
@@ -116,13 +127,8 @@ public class Controller extends AbstractAction {
     }
 
     private void updateInventoryCount(final String wine, final int bottles) {
-        switch (wine) {
-            case WindowLabels.MERLOT_BUTTON_TEXT -> bottlesMerlot += bottles;
-            case WindowLabels.ROSE_BUTTON_TEXT -> bottlesRose += bottles;
-            case WindowLabels.SAUVIGNON_BUTTON_TEXT -> bottlesSauvignon += bottles;
-        }
-        bottlesTotal += bottles;
-        rootWindow.updateInventoryCount(bottlesMerlot, bottlesRose, bottlesSauvignon, bottlesTotal);
+        wineInventory.put(wine, wineInventory.get(wine) + bottles);
+        wineInventory.put(TOTAL_BOTTLES_KEY, wineInventory.get(TOTAL_BOTTLES_KEY) + bottles);
     }
 
     private Optional<String> getSupplier() {
@@ -279,8 +285,8 @@ public class Controller extends AbstractAction {
     private void customerOrderPlaced() {
         var customerName = rootWindow.customerNameField()
                                      .getText();
-        var amount       = rootWindow.saleAmountField()
-                                     .getText();
+        var amount = rootWindow.saleAmountField()
+                               .getText();
         if (isCustomerOrderValid(customerName, amount)) {
             processCustomerOrder(customerName, amount);
         }
@@ -307,9 +313,9 @@ public class Controller extends AbstractAction {
                                  .isSelected()
                        ? 0.85
                        : 1.00;
-        var price    = Double.parseDouble(amount) * discount;
+        var price = Double.parseDouble(amount) * discount;
 
-        boolean inventoryUpdated = false;
+        boolean inventoryUpdated;
 
         if (rootWindow.singleTypePanel()
                       .isVisible()) {
@@ -336,28 +342,11 @@ public class Controller extends AbstractAction {
     }
 
     private boolean removeFromInventory(final String wine, final int bottles) {
-        switch (wine) {
-            case WindowLabels.MERLOT_BUTTON_TEXT -> {
-                if (bottlesMerlot - bottles < 0) {
-                    return false;
-                }
-                bottlesMerlot -= bottles;
-            }
-            case WindowLabels.ROSE_BUTTON_TEXT -> {
-                if (bottlesRose - bottles < 0) {
-                    return false;
-                }
-                bottlesRose -= bottles;
-            }
-            case WindowLabels.SAUVIGNON_BUTTON_TEXT -> {
-                if (bottlesSauvignon - bottles < 0) {
-                    return false;
-                }
-                bottlesSauvignon -= bottles;
-            }
+        if (wineInventory.get(wine) < bottles) {
+            return false;
         }
-        bottlesTotal -= bottles;
-        rootWindow.updateInventoryCount(bottlesMerlot, bottlesRose, bottlesSauvignon, bottlesTotal);
+        wineInventory.put(wine, wineInventory.get(wine) - bottles);
+        wineInventory.put(TOTAL_BOTTLES_KEY, wineInventory.get(TOTAL_BOTTLES_KEY) - bottles);
         return true;
     }
 
@@ -400,5 +389,17 @@ public class Controller extends AbstractAction {
 
         rootWindow.saleMessageLabel()
                   .setText(" ");
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        var tabbedPane = (JTabbedPane) e.getSource();
+        var tabIndex   = tabbedPane.indexOfTab(WindowLabels.INVENTORY_TAB_NAME);
+        if (tabbedPane.getSelectedIndex() == tabIndex) {
+            rootWindow.updateInventoryCount(wineInventory.get(WindowLabels.MERLOT_BUTTON_TEXT),
+                                            wineInventory.get(WindowLabels.ROSE_BUTTON_TEXT),
+                                            wineInventory.get(WindowLabels.SAUVIGNON_BUTTON_TEXT),
+                                            wineInventory.get(TOTAL_BOTTLES_KEY));
+        }
     }
 }
