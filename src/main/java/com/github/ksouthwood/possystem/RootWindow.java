@@ -290,69 +290,65 @@ public class RootWindow extends JFrame {
         var constraints = new GridBagConstraints();
         constraints.insets = new Insets(2, 2, 2, 2);
 
-//        var merlotLabel = new JLabel();
-//        merlotLabel.setText(WindowLabels.MERLOT_AMOUNT_TEXT);
-//        constraints.gridx = 0;
-//        constraints.gridy = 0;
-//        constraints.anchor = GridBagConstraints.LINE_END;
-//        inventoryPane.add(merlotLabel, constraints);
-
         merlotAmount = new JLabel();
         merlotAmount.setName(WindowLabels.MERLOT_AMOUNT_LABEL_NAME);
         merlotAmount.setText(WindowLabels.MERLOT_AMOUNT_LABEL_TEXT);
-//        merlotAmount.setText(WindowLabels.MERLOT_AMOUNT_TEXT + " " + WindowLabels.MERLOT_AMOUNT_LABEL_TEXT);
-        constraints.gridx = 0;
+        constraints.gridx = 1;
         constraints.gridy = 0;
         constraints.anchor = GridBagConstraints.CENTER;
         inventoryPane.add(merlotAmount, constraints);
 
-//        var roseLabel = new JLabel();
-//        roseLabel.setText(WindowLabels.ROSE_AMOUNT_TEXT);
-//        constraints.gridx = 0;
-//        constraints.gridy = 1;
-//        constraints.anchor = GridBagConstraints.LINE_END;
-//        inventoryPane.add(roseLabel, constraints);
-
         roseAmount = new JLabel();
         roseAmount.setName(WindowLabels.ROSE_AMOUNT_LABEL_NAME);
         roseAmount.setText(WindowLabels.ROSE_AMOUNT_LABEL_TEXT);
-//        roseAmount.setText(WindowLabels.ROSE_AMOUNT_TEXT + " " + WindowLabels.ROSE_AMOUNT_LABEL_TEXT);
-        constraints.gridx = 0;
+        constraints.gridx = 1;
         constraints.gridy = 1;
         constraints.anchor = GridBagConstraints.CENTER;
         inventoryPane.add(roseAmount, constraints);
 
-//        var sauvignonLabel = new JLabel();
-//        sauvignonLabel.setText(WindowLabels.SAUVIGNON_AMOUNT_TEXT);
-//        constraints.gridx = 0;
-//        constraints.gridy = 2;
-//        constraints.anchor = GridBagConstraints.LINE_END;
-//        inventoryPane.add(sauvignonLabel, constraints);
-
         sauvignonAmount = new JLabel();
         sauvignonAmount.setName(WindowLabels.SAUVIGNON_AMOUNT_LABEL_NAME);
         sauvignonAmount.setText(WindowLabels.SAUVIGNON_AMOUNT_LABEL_TEXT);
-//        sauvignonAmount.setText(WindowLabels.SAUVIGNON_AMOUNT_TEXT + " " + WindowLabels.SAUVIGNON_AMOUNT_LABEL_TEXT);
-        constraints.gridx = 0;
+        constraints.gridx = 1;
         constraints.gridy = 2;
         constraints.anchor = GridBagConstraints.CENTER;
         inventoryPane.add(sauvignonAmount, constraints);
 
-//        var totalLabel = new JLabel();
-//        totalLabel.setText(WindowLabels.TOTAL_AMOUNT_TEXT);
-//        constraints.gridx = 0;
-//        constraints.gridy = 3;
-//        constraints.anchor = GridBagConstraints.LINE_END;
-//        inventoryPane.add(totalLabel, constraints);
-
         totalAmount = new JLabel();
         totalAmount.setName(WindowLabels.TOTAL_AMOUNT_LABEL_NAME);
         totalAmount.setText(WindowLabels.TOTAL_AMOUNT_LABEL_TEXT);
-//        totalAmount.setText(WindowLabels.TOTAL_AMOUNT_TEXT + " " + WindowLabels.TOTAL_AMOUNT_LABEL_TEXT);
-        constraints.gridx = 0;
+        constraints.gridx = 1;
         constraints.gridy = 3;
         constraints.anchor = GridBagConstraints.CENTER;
         inventoryPane.add(totalAmount, constraints);
+
+        var merlotLabel = new JLabel();
+        merlotLabel.setText(WindowLabels.MERLOT_AMOUNT_TEXT);
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.anchor = GridBagConstraints.LINE_END;
+        inventoryPane.add(merlotLabel, constraints);
+
+        var roseLabel = new JLabel();
+        roseLabel.setText(WindowLabels.ROSE_AMOUNT_TEXT);
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.anchor = GridBagConstraints.LINE_END;
+        inventoryPane.add(roseLabel, constraints);
+
+        var sauvignonLabel = new JLabel();
+        sauvignonLabel.setText(WindowLabels.SAUVIGNON_AMOUNT_TEXT);
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.anchor = GridBagConstraints.LINE_END;
+        inventoryPane.add(sauvignonLabel, constraints);
+
+        var totalLabel = new JLabel();
+        totalLabel.setText(WindowLabels.TOTAL_AMOUNT_TEXT);
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        constraints.anchor = GridBagConstraints.LINE_END;
+        inventoryPane.add(totalLabel, constraints);
 
         return inventoryPane;
     }
@@ -652,10 +648,6 @@ public class RootWindow extends JFrame {
     }
 
     void updateInventoryCount(final int merlotCount, final int roseCount, final int sauvignonCount, final int totalCount) {
-//        merlotAmount.setText(WindowLabels.MERLOT_AMOUNT_TEXT + " " + String.valueOf(merlotCount));
-//        roseAmount.setText(WindowLabels.ROSE_AMOUNT_TEXT + " " + String.valueOf(roseCount));
-//        sauvignonAmount.setText(WindowLabels.SAUVIGNON_AMOUNT_TEXT + " " + String.valueOf(sauvignonCount));
-//        totalAmount.setText(WindowLabels.TOTAL_AMOUNT_TEXT + " " + String.valueOf(totalCount));
         merlotAmount.setText(String.valueOf(merlotCount));
         sauvignonAmount.setText(String.valueOf(sauvignonCount));
         roseAmount.setText(String.valueOf(roseCount));
